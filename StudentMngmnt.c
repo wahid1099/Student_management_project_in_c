@@ -39,8 +39,7 @@ void deleteStudent(struct Student** head, int id);
 void displayStudents(struct Student* head);
 void markAttendance(struct Student* student, int day);
 void viewAttendance(struct Student* student);
-
-
+void exportStudentDataToCSV(const char* filename, struct Student* head);
 
 void centerText(const char* text)
 {
@@ -99,7 +98,9 @@ int main()
         printf("\n");
         centerText("6.View Attendence");
         printf("\n");
-        centerText("7.Exit");
+         centerText("7.Export Data as csv");
+        printf("\n");
+        centerText("8.Exit");
         printf("\n");
         printf("\n");
 
@@ -110,7 +111,7 @@ int main()
         switch (choice)
         {
         case 1:
-        {
+        {   clearScreen();
             int id;
             char name[50];
             int age;
@@ -135,6 +136,7 @@ int main()
         }
         case 2:
             // View all students
+            clearScreen();
             displayStudents(studentList);
             break;
         case 3:
@@ -190,7 +192,16 @@ int main()
                 viewAttendance(currentStudent);
             }
             break;
-          case 7:
+         case 7:
+              // Export Data to CSV
+            printf("Enter the filename to export data to (e.g., student_data.csv): ");
+            char exportFilename[100];
+            scanf("%s", exportFilename);
+
+            exportStudentDataToCSV(exportFilename, studentList);
+            printf("Data exported to %s successfully.\n", exportFilename);
+            break; 
+          case 8:
            printf("Good Bye !!!!.\n");
             // Exit the program
             return 0;
@@ -290,4 +301,35 @@ void viewAttendance(struct Student* student) {
     for (int i = 0; i < MAX_ATTENDANCE_DAYS; i++) {
         printf("%d\t%s\n", i + 1, student->attendance[i] ? "Present" : "Absent");
     }
+}
+
+
+
+void exportStudentDataToCSV(const char* filename, struct Student* head) {
+    FILE* file = fopen(filename, "w"); // "w" mode overwrites the file
+    if (file == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    fprintf(file, "ID,Name,Age,Grades,Attendance\n");
+
+    struct Student* currentStudent = head;
+    while (currentStudent != NULL) {
+        fprintf(file, "%d,%s,%d,%.2f,", currentStudent->id, currentStudent->name, currentStudent->age, currentStudent->grades);
+        
+        // Write attendance data (0 for absent, 1 for present) to the CSV
+        for (int i = 0; i < MAX_ATTENDANCE_DAYS; i++) {
+            fprintf(file, "%d", currentStudent->attendance[i]);
+            if (i < MAX_ATTENDANCE_DAYS - 1) {
+                fprintf(file, ",");
+            }
+        }
+        
+        fprintf(file, "\n");
+        
+        currentStudent = currentStudent->next;
+    }
+
+    fclose(file);
 }
