@@ -9,6 +9,9 @@
 #endif
 #define MAX_COURSES 10 // Adjust the maximum number of courses as needed
 
+#define MAX_ATTENDANCE_DAYS 30 // Adjust the maximum number of attendance days as needed
+
+
 struct Course
 {
     char courseName[50];
@@ -26,7 +29,18 @@ struct Student
     // Add more fields as needed
     struct Course* courses; // Linked list pointer for courses
     struct Student* next;   // Linked list pointer for students
+    int attendance[MAX_ATTENDANCE_DAYS]; // Array to store attendance (0 for absent, 1 for present)
 };
+
+
+struct Student* createStudent(int id, const char* name, int age, float grades);
+void insertStudent(struct Student** head, struct Student* student);
+void deleteStudent(struct Student** head, int id);
+void displayStudents(struct Student* head);
+void markAttendance(struct Student* student, int day);
+void viewAttendance(struct Student* student);
+
+
 
 void centerText(const char* text)
 {
@@ -64,6 +78,7 @@ int main()
     printf("\033]0;Student Management System | DIU\007");
 #endif
 
+    struct Student* studentList = NULL;
 
     centerText("Welcome to the Student Management System");
     printf("\n");
@@ -71,6 +86,7 @@ int main()
 
     while(1)
     {
+        printf("\n");
         centerText("1.Add New Student");
         printf("\n");
         centerText("2.View All Student");
@@ -79,11 +95,199 @@ int main()
         printf("\n");
         centerText("4.Search A Student");
         printf("\n");
-        centerText("5.Exit");
+        centerText("5.Take Attendence");
+        printf("\n");
+        centerText("6.View Attendence");
+        printf("\n");
+        centerText("7.Exit");
+        printf("\n");
         printf("\n");
 
-    }
+        int choice;
+        printf("Enter Choice:");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+        case 1:
+        {
+            int id;
+            char name[50];
+            int age;
+            float grades;
+
+            // Prompt the user for student information
+            printf("Enter student ID: ");
+            scanf("%d", &id);
+            printf("Enter student name: ");
+            scanf("%s", name);
+            printf("Enter student age: ");
+            scanf("%d", &age);
+            printf("Enter student grades: ");
+            scanf("%f", &grades);
+
+            // Create a new student and add it to the list
+            struct Student* newStudent = createStudent(id, name, age, grades);
+            insertStudent(&studentList, newStudent);
+
+            printf("Student added successfully!\n");
+            break;
+        }
+        case 2:
+            // View all students
+            displayStudents(studentList);
+            break;
+        case 3:
+            // Remove a student (implement this)
+            break;
+        case 4:
+            // Search for a student (implement this)
+            break;
+        
+       case 5:
+          // Mark Attendance
+          int studentId;
+          int day;
+
+          printf("Enter student ID: ");
+          scanf("%d", &studentId);
+
+          // Find the student with the given ID
+          struct Student* currentStudent = studentList;
+          while (currentStudent != NULL && currentStudent->id != studentId) {
+              currentStudent = currentStudent->next;
+          }
+
+          if (currentStudent == NULL) {
+              printf("Student not found.\n");
+          } else {
+              printf("Enter the day/session to mark attendance (1-%d): ", MAX_ATTENDANCE_DAYS);
+              scanf("%d", &day);
+
+              if (day < 1 || day > MAX_ATTENDANCE_DAYS) {
+                  printf("Invalid day for marking attendance.\n");
+              } else {
+                  markAttendance(currentStudent, day - 1); // Adjust for 0-based index
+                  printf("Attendance marked as present for %s on day %d.\n", currentStudent->name, day);
+              }
+          }
+          break;
+
+        case 6:
+            // View Attendance
+            printf("Enter student ID: ");
+            scanf("%d", &studentId);
+
+            // Find the student with the given ID
+            currentStudent = studentList;
+            while (currentStudent != NULL && currentStudent->id != studentId) {
+                currentStudent = currentStudent->next;
+            }
+
+            if (currentStudent == NULL) {
+                printf("Student not found.\n");
+            } else {
+                viewAttendance(currentStudent);
+            }
+            break;
+          case 7:
+           printf("Good Bye !!!!.\n");
+            // Exit the program
+            return 0;
+                default:
+                    printf("Invalid choice. Please try again.\n");
+                }
+            }
+
+
+
 
 
     return 0;
+}
+
+
+
+struct Student* createStudent(int id, const char* name, int age, float grades)
+{
+    struct Student* student = (struct Student*)malloc(sizeof(struct Student));
+    if (student == NULL)
+    {
+        // Handle memory allocation error
+        return NULL;
+    }
+
+    student->id = id;
+    strncpy(student->name, name, sizeof(student->name));
+    student->age = age;
+    student->grades = grades;
+    for (int i = 0; i < MAX_ATTENDANCE_DAYS; i++) {
+        student->attendance[i] = 0; // Initialize attendance to absent
+    }
+    student->courses = NULL; // Initialize the course list to NULL
+    student->next = NULL;    // Initialize the next pointer to NULL
+
+    return student;
+}
+
+void insertStudent(struct Student** head, struct Student* student)
+{
+    if (*head == NULL)
+    {
+        // If the list is empty, make this student the head
+        *head = student;
+    }
+    else
+    {
+        // Otherwise, add the student to the end of the list
+        struct Student* current = *head;
+        while (current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = student;
+    }
+}
+
+void deleteStudent(struct Student** head, int id)
+{
+    // Implement student deletion here
+    // You'll need to traverse the list, find the student with the given ID, and remove it
+}
+
+void displayStudents(struct Student* head)
+{
+    if (head == NULL)
+    {
+        printf("No students to display.\n");
+        return;
+    }
+
+    printf("| %-4s | %-20s | %-4s | %-6s |\n", "ID", "Name", "Age", "Grades");
+    printf("|------|----------------------|------|--------|\n");
+
+    while (head != NULL)
+    {
+        printf("| %-4d | %-20s | %-4d | %-6.2f |\n", head->id, head->name, head->age, head->grades);
+          printf("|------|----------------------|------|--------|\n");
+        head = head->next;
+    }
+}
+
+
+void markAttendance(struct Student* student, int day) {
+    if (day >= 0 && day < MAX_ATTENDANCE_DAYS) {
+        student->attendance[day] = 1; // Mark as present
+    } else {
+        printf("Invalid day for marking attendance.\n");
+    }
+}
+
+
+void viewAttendance(struct Student* student) {
+    printf("Attendance Record for %s:\n", student->name);
+    printf("Day\tStatus\n");
+    for (int i = 0; i < MAX_ATTENDANCE_DAYS; i++) {
+        printf("%d\t%s\n", i + 1, student->attendance[i] ? "Present" : "Absent");
+    }
 }
