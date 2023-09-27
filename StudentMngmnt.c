@@ -16,11 +16,13 @@
 #define MAX_COURSES 10 // Adjust the maximum number of courses as needed
 
 #define MAX_ATTENDANCE_DAYS 30 // Adjust the maximum number of attendance days as needed
+#define MAX_NAME_LENGTH 50
 
 struct Course
 {
-    char courseName[50];
+    char courseName[MAX_NAME_LENGTH];
     float courseGrade;
+    struct Course *nextCourse;
 };
 
 struct Student
@@ -44,7 +46,9 @@ void displayStudents(struct Student *head);
 void markAttendance(struct Student *student, int day);
 void viewAttendance(struct Student *student);
 void exportStudentDataToCSV(const char *filename, struct Student *head);
+void addCourse(struct Course courses[], int *courseCount);
 
+void addCourseToStudent(struct Student *student, const char *courseName, float courseGrade);
 void centerText(const char *text)
 {
     int textLength = strlen(text);
@@ -111,13 +115,18 @@ int main()
         printf("\n");
         centerText("7.Export Data as csv");
         printf("\n");
-        centerText("8.Exit");
+        centerText("8.Add Course");
+        printf("\n");
+        centerText("9.Exit");
         printf("\n");
         printf("\n");
 
         int choice;
         printf("Enter Choice:");
         scanf("%d", &choice);
+        int studentId;
+        char courseName[MAX_NAME_LENGTH];
+        float courseGrade;
 
         switch (choice)
         {
@@ -227,7 +236,33 @@ int main()
             exportStudentDataToCSV(exportFilename, studentList);
             printf("Data exported to %s successfully.\n", exportFilename);
             break;
+
         case 8:
+
+            printf("Enter student ID: ");
+            scanf("%d", &studentId);
+
+            struct Student *current = studentList;
+            while (current != NULL && current->id != studentId)
+            {
+                current = current->next;
+            }
+
+            if (current == NULL)
+            {
+                printf("Student not found with ID %d\n", studentId);
+                break;
+            }
+
+            printf("Enter course name: ");
+            scanf("%s", courseName);
+
+            printf("Enter course grade: ");
+            scanf("%f", &courseGrade);
+
+            addCourseToStudent(current, courseName, courseGrade);
+            break;
+        case 9:
             printf("Good Bye !!!!.\n");
             // Exit the program
             return 0;
@@ -287,6 +322,25 @@ void deleteStudent(struct Student **head, int id)
     // You'll need to traverse the list, find the student with the given ID, and remove it
 }
 
+// void displayStudents(struct Student *head)
+// {
+//     if (head == NULL)
+//     {
+//         printf("No students to display.\n");
+//         return;
+//     }
+
+//     printf("| %-4s | %-20s | %-4s | %-6s |\n", "ID", "Name", "Age", "Grades");
+//     printf("|------|----------------------|------|--------|\n");
+
+//     while (head != NULL)
+//     {
+//         printf("| %-4d | %-20s | %-4d | %-6.2f |\n", head->id, head->name, head->age, head->grades);
+//         printf("|------|----------------------|------|--------|\n");
+//         head = head->next;
+//     }
+// }
+
 void displayStudents(struct Student *head)
 {
     if (head == NULL)
@@ -295,13 +349,24 @@ void displayStudents(struct Student *head)
         return;
     }
 
-    printf("| %-4s | %-20s | %-4s | %-6s |\n", "ID", "Name", "Age", "Grades");
-    printf("|------|----------------------|------|--------|\n");
+    printf("| %-4s | %-20s | %-4s | %-6s | %-40s | %-10s |\n", "ID", "Name", "Age", "Grades", "Course Name", "Course Grade");
+    printf("|------|----------------------|------|--------|------------------------------------------|--------------|\n");
 
     while (head != NULL)
     {
-        printf("| %-4d | %-20s | %-4d | %-6.2f |\n", head->id, head->name, head->age, head->grades);
-        printf("|------|----------------------|------|--------|\n");
+        printf("| %-4d | %-20s | %-4d | %-6.2f |", head->id, head->name, head->age, head->grades);
+
+        // Assuming a student can have multiple courses, iterate through them and display each one
+        struct Course *course = head->courses;
+        while (course != NULL)
+        {
+            printf(" %-40s | %-10.4f |\n", course->courseName, course->courseGrade);
+            if (course->nextCourse != NULL)
+                printf("|      |                      |      |        |"); // Separate lines for multiple courses
+            course = course->nextCourse;
+        }
+
+        printf("|------|----------------------|------|--------|------------------------------------------|------------|\n");
         head = head->next;
     }
 }
@@ -377,4 +442,32 @@ void exportStudentDataToCSV(const char *filename, struct Student *head)
     }
 
     fclose(file);
+}
+
+void addCourseToStudent(struct Student *student, const char *courseName, float courseGrade)
+{
+    struct Course *newCourse = (struct Course *)malloc(sizeof(struct Course));
+    if (newCourse == NULL)
+    {
+        // Handle memory allocation error
+        return;
+    }
+
+    strncpy(newCourse->courseName, courseName, sizeof(newCourse->courseName));
+    newCourse->courseGrade = courseGrade;
+    newCourse->nextCourse = NULL;
+
+    if (student->courses == NULL)
+    {
+        student->courses = newCourse;
+    }
+    else
+    {
+        struct Course *current = student->courses;
+        while (current->nextCourse != NULL)
+        {
+            current = current->nextCourse;
+        }
+        current->nextCourse = newCourse;
+    }
 }
