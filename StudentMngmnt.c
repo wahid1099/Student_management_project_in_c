@@ -41,7 +41,7 @@ struct Student
 
 struct Student *createStudent(int id, const char *name, int age, float grades);
 void insertStudent(struct Student **head, struct Student *student);
-void deleteStudent(struct Student **head, int id);
+void deleteStudent(struct Student **head, int studentIdToDelete);
 void displayStudents(struct Student *head);
 void markAttendance(struct Student *student, int day);
 void viewAttendance(struct Student *student);
@@ -161,8 +161,11 @@ int main()
             displayStudents(studentList);
             break;
         case 3:
-            // Remove a student (implement this)
-            break;
+            int studentIdToDelete;
+            printf("Enter student Id to delete:");
+            scanf("%d", &studentIdToDelete);
+            deleteStudent(&studentList, studentIdToDelete);
+
         case 4:
             // Search for a student (implement this)
             break;
@@ -316,12 +319,6 @@ void insertStudent(struct Student **head, struct Student *student)
     }
 }
 
-void deleteStudent(struct Student **head, int id)
-{
-    // Implement student deletion here
-    // You'll need to traverse the list, find the student with the given ID, and remove it
-}
-
 // void displayStudents(struct Student *head)
 // {
 //     if (head == NULL)
@@ -470,4 +467,37 @@ void addCourseToStudent(struct Student *student, const char *courseName, float c
         }
         current->nextCourse = newCourse;
     }
+}
+
+void deleteStudent(struct Student **head, int studentIdToDelete)
+{
+    struct Student *current = *head;
+    struct Student *prev = NULL;
+
+    while (current != NULL && current->id != studentIdToDelete)
+    {
+        prev = current;
+        current = current->next;
+    }
+
+    if (current == NULL)
+    {
+        // Student with the given ID not found
+        return;
+    }
+
+    if (prev == NULL)
+    {
+        // The student to delete is the head of the list
+        *head = current->next;
+    }
+    else
+    {
+        prev->next = current->next;
+    }
+
+    // Free the memory allocated for the deleted student
+    free(current);
+
+    printf("Student with ID %d has been deleted.\n", studentIdToDelete);
 }
