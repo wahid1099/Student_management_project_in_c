@@ -47,8 +47,9 @@ void markAttendance(struct Student *student, int day);
 void viewAttendance(struct Student *student);
 void exportStudentDataToCSV(const char *filename, struct Student *head);
 void addCourse(struct Course courses[], int *courseCount);
-
+struct Student* searchStudentByID(struct Student* head, int targetID);
 void addCourseToStudent(struct Student *student, const char *courseName, float courseGrade);
+void displayStudentDetails(struct Student* student);
 void centerText(const char *text)
 {
     int textLength = strlen(text);
@@ -127,7 +128,8 @@ int main()
         int studentId;
         char courseName[MAX_NAME_LENGTH];
         float courseGrade;
-
+        int targetID;
+         struct Student* foundByID ;
         switch (choice)
         {
         case 1:
@@ -167,7 +169,12 @@ int main()
             deleteStudent(&studentList, studentIdToDelete);
 
         case 4:
-            // Search for a student (implement this)
+            // Search for a student
+            printf("ENTER STUDENT ID TO SEARCH:");
+            scanf("%d",&targetID);
+            foundByID = searchStudentByID(studentList, targetID);
+            displayStudentDetails(foundByID);
+
             break;
 
         case 5:
@@ -500,4 +507,40 @@ void deleteStudent(struct Student **head, int studentIdToDelete)
     free(current);
 
     printf("Student with ID %d has been deleted.\n", studentIdToDelete);
+}
+
+// Function to search for a student by ID
+struct Student* searchStudentByID(struct Student* head, int targetID) {
+    struct Student* current = head;
+
+    while (current != NULL) {
+        if (current->id == targetID) {
+            return current; // Student found
+        }
+        current = current->next;
+    }
+
+    return NULL; // Student not found
+}
+
+
+// Function to display the details of a student
+void displayStudentDetails(struct Student* student) {
+    if (student != NULL) {
+        printf("Student ID: %d\n", student->id);
+        printf("Name: %s\n", student->name);
+        printf("Phone: %s\n", student->phone);
+        printf("Address: %s\n", student->adress);
+        printf("Age: %d\n", student->age);
+        printf("Grades: %.2f\n", student->grades);
+
+        // Display attendance
+        printf("Attendance: ");
+        for (int i = 0; i < MAX_ATTENDANCE_DAYS; i++) {
+            printf("%d ", student->attendance[i]);
+        }
+        printf("\n");
+    } else {
+        printf("Student not found.\n");
+    }
 }
